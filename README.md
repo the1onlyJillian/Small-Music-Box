@@ -1,47 +1,53 @@
 # 🎧 Small Music Box named "Jilly's Little Music Box"
 
-*A little music box for every mood. 🎀*
+*A little music box for every mood. ✨🎀*
 
-**Jilly's Music Box** is a cute, personal music player built with HTML, CSS, and vanilla JavaScript. Upload your favorite songs, organize them by mood, and create your own little music corner right in your browser.
+**Jilly's Music Box** is a cute, mood-based music player built with HTML, CSS, and JavaScript. Add your favorite songs, organize them by mood, and watch the music come to life through animated visualizers that match your vibe.
 
-Whether you're feeling soft, sad, romantic, or ready to hype yourself up, there's a playlist mood for every version of you. 💗
+From soft bubbles to chaotic energy bursts, every mood has its own little world. 💗
 
 ## ✨ Features
 
-- 🎵 **Personal Music Player** — upload and play your own local audio files.
-- 🎀 **Mood-Based Playlists** — organize songs into seven mood categories.
-- 🖼️ **Automatic Mood Covers** — each mood has its own cover artwork.
-- 💿 **Song Management** — add, view, edit, and delete songs in your collection.
-- 🎧 **Audio Playback** — listen to your music directly in the browser.
-- 💾 **Local Data Storage** — store song metadata and audio data locally using IndexedDB.
-- 🌷 **Cute Scrapbook UI** — a pastel-inspired interface designed to feel like a personal music diary.
+- 🎵 **Personal Music Player** — upload and play your favorite local audio files directly in the browser.
+- 🎀 **Seven Mood Categories** — organize your songs into Soft, Late Night, Happy, Hype, Chill, Sad, and Romantic.
+- 💿 **Playlist Management** — add new songs, edit song details, delete tracks, and browse your collection.
+- 🎧 **Playback Controls** — play, pause, skip tracks, adjust volume, and seek through songs.
+- 🌈 **Mood-Based Visualizers** — enjoy seven animated visual effects that respond to audio frequency data.
+- 🎨 **Dynamic Mood Themes** — the interface changes its background and visual styling according to the selected song's mood.
+- 💗 **Mood Messages** — get little messages that match your listening vibe.
+- 💾 **Local Music Storage** — save song details and audio files in your browser using IndexedDB.
+- 💿 **Spinning CD Animation** — watch the CD spin while music is playing.
 
 ## 🎨 Mood Categories
 
-| Mood | Vibe |
-|---|---|
-| ☁️ Soft | Gentle, warm, and comforting |
-| 🌙 Late Night | For quiet nights and late-hour thoughts |
-| 🌈 Happy | Bright, cheerful, and feel-good |
-| ⚡ Hype | For your main-character moments |
-| 🍃 Chill | Relaxed, calm, and laid-back |
-| 💧 Sad | For the feelings you need to sit with |
-| 💌 Romantic | For butterflies and hopeless-romantic moments |
+Each mood comes with its own theme, visualizer, and personality.
+
+| Mood | Visualizer | Vibe |
+|---|---|---|
+| 🫧 Soft | Floating bubbles | Gentle and dreamy |
+| 🌙 Late Night | Twinkling stars | Midnight thoughts and overthinking |
+| 🌈 Happy | Rainbow bubbles | Colorful, cheerful energy |
+| ⚡ Hype | Energy bursts | High-energy main-character moments |
+| 🌿 Chill | Liquid waves | Calm and laid-back |
+| 🌧️ Sad | Rain and ripples | A little emotional damage |
+| 🎀 Romantic | Floating hearts | Butterflies and hopeless-romantic energy |
 
 ## 🛠️ Built With
 
-- **HTML5** — page structure and audio elements.
-- **CSS3** — styling, pastel colors, layout, and responsive design.
-- **Vanilla JavaScript** — playlist interactions, mood filtering, and song management.
-- **HTML5 Audio API** — audio playback in the browser.
-- **IndexedDB** — local storage for audio files and song metadata.
+- **HTML5** — structures the music player interface and interactive elements.
+- **CSS3** — styles the scrapbook-inspired layout, mood themes, and animations.
+- **Vanilla JavaScript (ES6+)** — handles playback logic, playlist management, mood filtering, and dynamic UI updates without a JavaScript framework.
+- **HTML5 Audio** — plays audio files and supports playback, seeking, volume adjustment, and track navigation.
+- **Web Audio API** — analyzes audio frequency data to make the visualizers respond to music.
+- **Canvas API** — draws the seven animated mood-based visualizers.
+- **IndexedDB** — stores song metadata and audio files locally in the browser.
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- A modern web browser.
-- Your favorite audio files.
+- A modern web browser with support for the required Web APIs.
+- Local audio files to add to your collection.
 
 ### Installation
 
@@ -51,36 +57,42 @@ Whether you're feeling soft, sad, romantic, or ready to hype yourself up, there'
    git clone <your-repository-url>
    ```
 
-2. Open the project folder.
+2. Navigate to the project directory:
 
-3. Open `index.html` in your browser, or use a local development server if required by the project.
+   ```bash
+   cd jillys-music-box
+   ```
 
-4. Upload your favorite songs and organize them by mood.
+3. Open `index.html` in your browser, or use a local development server.
 
-5. Press play and enjoy your own little music box! 🎶
+4. Click the add-song button (`＋`), choose an audio file, enter its title and artist, and select a mood.
+
+5. Press play, pick your vibe, and enjoy the visualizer! 🎶
 
 ## 🧠 What I Learned
 
 - Building an interactive web application with HTML, CSS, and JavaScript.
-- Implementing audio playback in the browser.
-- Managing song data and local audio files with IndexedDB.
-- Creating mood-based filtering and playlist management.
-- Handling create, read, update, and delete operations.
-- Designing a themed user interface with a consistent visual identity.
+- Managing audio playback and user interactions.
+- Working with the Web Audio API and frequency analysis.
+- Creating animated visualizations using the Canvas API.
+- Implementing CRUD operations for playlist management.
+- Storing and retrieving audio files with IndexedDB.
+- Generating mood-based themes and dynamic visual effects.
+- Managing application state and browser events.
 
 ## 💡 Future Improvements
 
-- 🎧 Integrate Spotify features, depending on API access and playback requirements.
-- 🎨 Add more customization options for playlist covers.
-- 🎼 Improve the music visualizer.
-- 💗 Add more personal touches and interactive details.
+- 🎨 Add customizable playlist covers.
+- 🎼 Refine visualizer animations and performance.
+- 🎧 Explore Spotify integration, depending on API access and playback requirements.
+- 💗 Add more mood categories and personalization options.
 
 ## 🎀 A Little Note
 
-Music hits differently when it matches your mood.
+Some days need bubbles. Some need rain. Some just need a little music and a dramatic playlist.
 
-Welcome to your own little music corner. 💌
+Whatever your mood is today, there's a little space for it here. 💌
 
 ---
 
-*Made with HTML, CSS, JavaScript, and lots of love for music.* 🎧💗
+*Made with HTML, CSS, JavaScript, and lots of love for music.* 🎧💗 music.* 🎧💗
