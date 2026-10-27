@@ -1,0 +1,2155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jilly's Little Music Room</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Quicksand', system-ui, sans-serif;
+        }
+
+        body {
+            background: #f5edea;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0.5rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .app-card {
+            max-width: 380px;
+            width: 100%;
+            background: rgba(255, 248, 245, 0.92);
+            backdrop-filter: blur(4px);
+            border-radius: 2rem;
+            padding: 0.8rem 1.2rem 0.8rem;
+            box-shadow: 0 12px 40px rgba(120, 80, 70, 0.10), 0 4px 12px rgba(0,0,0,0.02);
+            border: 1px solid rgba(255, 220, 210, 0.4);
+            transition: background 0.5s ease;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        #visualizerCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            border-radius: 2rem;
+            opacity: 0.8;
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.15rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .cute-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            background: linear-gradient(145deg, #f09a8a, #e8a89a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.2px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.15rem;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            padding: 0.1rem;
+            color: #6b4f47;
+            border-radius: 50%;
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-btn:hover {
+            background: #f0e0da;
+            transform: scale(0.95);
+        }
+
+        .cover-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0.1rem 0 0.1rem;
+            padding: 0.3rem 0;
+            z-index: 1;
+        }
+
+        .deco-emoji {
+            position: absolute;
+            font-size: 1.2rem;
+            opacity: 0.6;
+            pointer-events: none;
+            user-select: none;
+            z-index: 3;
+        }
+        .deco-emoji.top-left { top: -4px; left: -4px; animation: floaty2 6s ease-in-out infinite; }
+        .deco-emoji.top-right { top: -4px; right: -4px; animation: floaty2 7s ease-in-out infinite reverse; }
+        .deco-emoji.bottom-left { bottom: -4px; left: -4px; animation: floaty2 8s ease-in-out infinite 1s; }
+        .deco-emoji.bottom-right { bottom: -4px; right: -4px; animation: floaty2 5s ease-in-out infinite 0.5s; }
+        .deco-emoji.mid-left { top: 50%; left: -10px; transform: translateY(-50%); animation: floaty2 9s ease-in-out infinite 2s; }
+        .deco-emoji.mid-right { top: 50%; right: -10px; transform: translateY(-50%); animation: floaty2 7s ease-in-out infinite 1.5s; }
+
+        @keyframes floaty2 {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-6px) rotate(5deg); }
+        }
+
+        .cd-container {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            box-shadow: 
+                0 6px 28px rgba(100, 70, 60, 0.18),
+                inset 0 0 0 3px rgba(255, 255, 255, 0.3),
+                inset 0 0 0 8px rgba(200, 180, 170, 0.10);
+            overflow: hidden;
+            cursor: pointer;
+            transition: box-shadow 0.3s;
+            z-index: 2;
+        }
+
+        .cd-container:hover {
+            box-shadow: 
+                0 10px 36px rgba(100, 70, 60, 0.22),
+                inset 0 0 0 3px rgba(255, 255, 255, 0.4),
+                inset 0 0 0 8px rgba(200, 180, 170, 0.15);
+        }
+
+        .cd-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .cd-container .fallback-emoji {
+            font-size: 3.6rem;
+            opacity: 0.7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            background: #ecd9d0;
+        }
+
+        .cd-container.spinning img {
+            animation: cdSpin 8s linear infinite;
+        }
+        .cd-container.spinning .fallback-emoji {
+            animation: cdSpin 8s linear infinite;
+        }
+
+        @keyframes cdSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .cd-container::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 16%;
+            aspect-ratio: 1/1;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(200,180,170,0.25) 0%, rgba(255,255,255,0.5) 40%, rgba(200,180,170,0.1) 100%);
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.06);
+            pointer-events: none;
+            z-index: 2;
+            border: 2px solid rgba(255,255,255,0.12);
+        }
+
+        .song-info {
+            text-align: center;
+            margin: 0.15rem 0 0.1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .song-info .title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #3a2924;
+            line-height: 1.1;
+        }
+
+        .song-info .artist {
+            font-size: 0.7rem;
+            color: #7e6058;
+            line-height: 1.1;
+        }
+
+        .song-info .mood-label {
+            font-size: 0.55rem;
+            background: #f0e0da;
+            padding: 0.05rem 0.7rem;
+            border-radius: 30px;
+            display: inline-block;
+            margin-top: 0.05rem;
+            color: #3a2924;
+        }
+
+        .player-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            margin: 0.05rem 0 0.1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .ctrl-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: #5d3f37;
+            transition: 0.2s;
+            padding: 0.05rem;
+            line-height: 1;
+        }
+
+        .ctrl-btn:hover {
+            color: #a06b5c;
+            transform: scale(1.05);
+        }
+
+        .ctrl-btn.play-btn {
+            font-size: 1.6rem;
+            background: #dbb8ac;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 14px rgba(180, 130, 110, 0.15);
+            color: #2d1d18;
+            line-height: 1; 
+            padding: 0;
+            padding-bottom: 1px;
+            text-indent: 1px;
+        }
+
+        .ctrl-btn.play-btn:hover {
+            background: #c9a397;
+            transform: scale(0.96);
+        }
+
+        .progress-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin: 0.05rem 0 0.1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 3px;
+            background: #e7d3cb;
+            border-radius: 20px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: #c49a8a;
+            border-radius: 20px;
+            transition: width 0.1s linear;
+        }
+
+        .time-display {
+            font-size: 0.5rem;
+            color: #7f6259;
+            min-width: 32px;
+            text-align: right;
+        }
+        .time-display:first-child {
+            text-align: left;
+            min-width: 32px;
+        }
+
+        .bottom-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .volume-wrap {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .volume-wrap input[type="range"] {
+            width: 40px;
+            accent-color: #c49a8a;
+            height: 3px;
+        }
+
+        .volume-wrap span {
+            font-size: 0.55rem;
+        }
+
+        .mood-filter-mini {
+            display: flex;
+            gap: 0.08rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .mood-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: 0.15s;
+            font-size: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0e0da;
+        }
+
+        .mood-dot.active {
+            border-color: #b48b7e;
+            transform: scale(1.08);
+            box-shadow: 0 2px 6px rgba(180, 120, 100, 0.12);
+        }
+
+        .mood-dot:hover {
+            transform: scale(1.05);
+        }
+
+        .cute-msg {
+            text-align: center;
+            margin-top: 0.05rem;
+            font-size: 0.6rem;
+            color: #b18a7c;
+            font-style: italic;
+            min-height: 0.9rem;
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* PLAYLIST SHEET */
+        .playlist-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.12);
+            backdrop-filter: blur(3px);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .playlist-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .playlist-sheet {
+            background: #fffcf9;
+            max-width: 380px;
+            width: 100%;
+            max-height: 50vh;
+            border-radius: 20px 20px 0 0;
+            padding: 0.6rem 1.2rem 1rem;
+            transform: translateY(100%);
+            transition: 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+            overflow-y: auto;
+            box-shadow: 0 -8px 32px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .playlist-overlay.show .playlist-sheet {
+            transform: translateY(0);
+        }
+
+        .playlist-sheet .handle {
+            width: 28px;
+            height: 3px;
+            background: #ddd0ca;
+            border-radius: 10px;
+            margin: 0 auto 0.4rem;
+        }
+
+        .playlist-sheet h3 {
+            font-weight: 500;
+            color: #432f2a;
+            margin-bottom: 0.3rem;
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .playlist-sheet .close-playlist {
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: #7a5f56;
+        }
+
+        .playlist-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.3rem 0.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.15s;
+            border-bottom: 1px solid #f5eae6;
+        }
+
+        .playlist-item:hover {
+            background: #f8efea;
+        }
+
+        .playlist-item .mini-cover {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #ecd9d0;
+            flex-shrink: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .playlist-item .mini-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .playlist-item .item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .playlist-item .item-info .item-title {
+            font-weight: 500;
+            font-size: 0.75rem;
+            color: #3a2924;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .playlist-item .item-info .item-artist {
+            font-size: 0.6rem;
+            color: #7e6058;
+        }
+
+        .playlist-item .item-info .item-mood {
+            font-size: 0.5rem;
+            background: #f0e0da;
+            padding: 0.05rem 0.4rem;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .playlist-item.current {
+            background: #f5e8e2;
+        }
+
+        .playlist-item .item-actions {
+            display: flex;
+            gap: 0.1rem;
+        }
+
+        .playlist-item .item-actions button {
+            background: none;
+            border: none;
+            font-size: 0.6rem;
+            cursor: pointer;
+            color: #7a5f56;
+            padding: 0.05rem 0.1rem;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.15s;
+        }
+
+        .playlist-item .item-actions button:hover {
+            background: #f0e0da;
+            color: #3a2924;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 0.8rem 0.3rem;
+            color: #7a5f56;
+        }
+        .empty-state .big { font-size: 1.8rem; }
+        .empty-state p { font-size: 0.7rem; }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.12);
+            backdrop-filter: blur(3px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.25s;
+        }
+        .modal-overlay.show { visibility: visible; opacity: 1; }
+
+        .modal-box {
+            background: #fffcf9;
+            max-width: 300px;
+            width: 90%;
+            border-radius: 28px;
+            padding: 1rem 1.2rem 1.2rem;
+            box-shadow: 0 20px 40px rgba(40,20,10,0.08);
+            border: 1px solid #f5ded6;
+            transform: scale(0.94);
+            transition: 0.25s;
+        }
+        .modal-overlay.show .modal-box { transform: scale(1); }
+
+        .modal-box h2 {
+            font-weight: 500;
+            font-size: 0.85rem;
+            margin-bottom: 0.3rem;
+            color: #432f2a;
+        }
+        .modal-box label {
+            display: block;
+            margin-top: 0.3rem;
+            font-weight: 500;
+            font-size: 0.65rem;
+            color: #4b3731;
+        }
+        .modal-box input,
+        .modal-box select {
+            width: 100%;
+            padding: 0.3rem 0.6rem;
+            border: 1px solid #e7d3cb;
+            border-radius: 30px;
+            background: #fffaf7;
+            margin-top: 2px;
+            font-size: 0.7rem;
+        }
+        .modal-box input[type="file"] {
+            padding: 0.15rem 0;
+            border: none;
+            background: transparent;
+        }
+        .modal-box .btn-group {
+            display: flex;
+            gap: 0.4rem;
+            margin-top: 0.8rem;
+            justify-content: flex-end;
+        }
+        .btn {
+            padding: 0.2rem 0.9rem;
+            border: none;
+            border-radius: 60px;
+            font-weight: 500;
+            font-size: 0.65rem;
+            background: #edd9d0;
+            color: #3e2c26;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .btn-primary { background: #dbb8ac; color: #2d1d18; }
+        .btn-primary:hover { background: #c9a397; }
+        .btn-danger { background: #eac4b8; color: #562f26; }
+        .btn-danger:hover { background: #deb0a0; }
+        .btn-soft { background: #f1e0da; }
+        .btn-soft:hover { background: #e7d2ca; }
+
+        .delete-modal .modal-box { max-width: 260px; }
+        .delete-modal .modal-box p {
+            color: #5e423b;
+            font-size: 0.7rem;
+            margin: 0.2rem 0 0.6rem;
+        }
+        #editHint {
+            font-size: 0.55rem;
+            color: #b18a7c;
+            margin-top: 0.1rem;
+        }
+
+        @media (max-width: 420px) {
+            .app-card { padding: 0.6rem 0.8rem 0.7rem; border-radius: 1.5rem; }
+            .cd-container { width: 180px; height: 180px; }
+            .ctrl-btn.play-btn { width: 40px; height: 40px; font-size: 1.5rem; }
+            .player-controls { gap: 0.5rem; }
+            .deco-emoji { font-size: 1rem !important; }
+            .deco-emoji.mid-left { left: -6px; }
+            .deco-emoji.mid-right { right: -6px; }
+            .playlist-sheet { padding: 0.4rem 0.8rem 0.8rem; }
+            #visualizerCanvas { opacity: 0.6; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-card" id="appWrapper">
+        <canvas id="visualizerCanvas"></canvas>
+
+        <div class="header-row">
+            <span class="cute-title">♡ Jilly's Little Music Box</span>
+            <div class="header-actions">
+                <button class="icon-btn" id="openPlaylistBtn" title="Daftar Lagu">💗</button>
+                <button class="icon-btn" id="openAddModal" title="Tambah Lagu">➕</button>
+            </div>
+        </div>
+
+        <div class="cover-wrapper">
+            <span class="deco-emoji top-left">🌸</span>
+            <span class="deco-emoji top-right">⭐</span>
+            <span class="deco-emoji bottom-left">🎀</span>
+            <span class="deco-emoji bottom-right">✨</span>
+            <span class="deco-emoji mid-left">🎧</span>
+            <span class="deco-emoji mid-right">🌙</span>
+
+            <div class="cd-container" id="cdContainer">
+                <img id="coverImage" src="" alt="cover" style="display:none;" />
+                <div class="fallback-emoji" id="fallbackEmoji">🎧</div>
+            </div>
+        </div>
+
+        <div class="song-info">
+            <div class="title" id="songTitle">Belum ada lagu</div>
+            <div class="artist" id="songArtist">—</div>
+            <div class="mood-label" id="songMoodLabel">🎵</div>
+        </div>
+
+        <div class="player-controls">
+            <button class="ctrl-btn" id="prevBtn">⏮</button>
+            <button class="ctrl-btn play-btn" id="playBtn">▶</button>
+            <button class="ctrl-btn" id="nextBtn">⏭</button>
+        </div>
+
+        <div class="progress-wrap">
+            <span class="time-display" id="currentTime">0:00</span>
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <span class="time-display" id="durationTime">0:00</span>
+        </div>
+
+        <div class="bottom-row">
+            <div class="volume-wrap">
+                <span>🔊</span>
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.8" />
+            </div>
+            <div class="mood-filter-mini" id="moodFilter">
+                <span class="mood-dot active" data-mood="all" title="Semua">ALL</span>
+                <span class="mood-dot" data-mood="Soft" title="Soft">🌸</span>
+                <span class="mood-dot" data-mood="Late Night" title="Late Night">🌙</span>
+                <span class="mood-dot" data-mood="Happy" title="Happy">☀️</span>
+                <span class="mood-dot" data-mood="Hype" title="Hype">⚡</span>
+                <span class="mood-dot" data-mood="Chill" title="Chill">🌿</span>
+                <span class="mood-dot" data-mood="Sad" title="Sad">💔</span>
+                <span class="mood-dot" data-mood="Romantic" title="Romantic">🎀</span>
+            </div>
+        </div>
+
+        <div class="cute-msg" id="cuteMsg">🎵 a little box of songs & moods ✨</div>
+    </div>
+
+    <!-- PLAYLIST SHEET -->
+    <div class="playlist-overlay" id="playlistOverlay">
+        <div class="playlist-sheet">
+            <div class="handle"></div>
+            <h3>
+                <span>🎵 Song List</span>
+                <button class="close-playlist" id="closePlaylistBtn">✕</button>
+            </h3>
+            <div id="playlistItems"></div>
+            <div style="text-align:center; margin-top:0.4rem; font-size:0.6rem; color:#b89a8e; letter-spacing:2px; border-top:1px solid #f5eae6; padding-top:0.3rem;">
+                🎧 ✦ 🌸 ✦ ⭐ ✦ 🎀 ✦ 🌙 ✦ ☀️
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ADD/EDIT -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+            <h2 id="modalTitle">✨ Tambah Lagu</h2>
+            <input type="file" id="fileInput" accept="audio/*" />
+            <label>Judul</label>
+            <input type="text" id="inputTitle" placeholder="judul lagu" />
+            <label>Artis</label>
+            <input type="text" id="inputArtist" placeholder="nama artis" />
+            <label>Mood</label>
+            <select id="inputMood">
+                <option value="Soft">🌸 Soft</option>
+                <option value="Late Night">🌙 Late Night</option>
+                <option value="Happy">☀️ Happy</option>
+                <option value="Hype">⚡ Hype</option>
+                <option value="Chill">🌿 Chill</option>
+                <option value="Sad">💔 Sad</option>
+                <option value="Romantic">🎀 Romantic</option>
+            </select>
+            <div id="editHint"></div>
+            <div class="btn-group">
+                <button class="btn btn-soft" id="closeModal">↩️batal</button>
+                <button class="btn btn-primary" id="saveSongBtn">💾 simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DELETE CONFIRM -->
+    <div class="modal-overlay delete-modal" id="deleteModal">
+        <div class="modal-box">
+            <h2>Hapus lagu ini? 🥺</h2>
+            <p>Yakin mau dihapus dari playlist?</p>
+            <div class="btn-group">
+                <button class="btn btn-soft" id="cancelDelete">BATAL</button>
+                <button class="btn btn-danger" id="confirmDelete">HAPUS</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ----- STATE -----
+            let songs = [];
+            let currentIndex = -1;
+            let audio = new Audio();
+            let isPlaying = false;
+            let currentFilter = 'all';
+            let editingId = null;
+            let deleteTargetId = null;
+
+            let audioContext = null;
+            let analyser = null;
+            let dataArray = null;
+            let visualizerRunning = false;
+            let visualizerFrameId = null;
+            let currentMood = 'Soft';
+
+            // DOM refs
+            const cdContainer = document.getElementById('cdContainer');
+            const coverImage = document.getElementById('coverImage');
+            const fallbackEmoji = document.getElementById('fallbackEmoji');
+            const songTitle = document.getElementById('songTitle');
+            const songArtist = document.getElementById('songArtist');
+            const songMoodLabel = document.getElementById('songMoodLabel');
+            const playBtn = document.getElementById('playBtn');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const progressFill = document.getElementById('progressFill');
+            const progressBar = document.getElementById('progressBar');
+            const currentTime = document.getElementById('currentTime');
+            const durationTime = document.getElementById('durationTime');
+            const volumeSlider = document.getElementById('volumeSlider');
+            const cuteMsg = document.getElementById('cuteMsg');
+            const appWrapper = document.getElementById('appWrapper');
+
+            const canvas = document.getElementById('visualizerCanvas');
+            const ctx = canvas.getContext('2d');
+
+            const playlistOverlay = document.getElementById('playlistOverlay');
+            const playlistItems = document.getElementById('playlistItems');
+            const openPlaylistBtn = document.getElementById('openPlaylistBtn');
+            const closePlaylistBtn = document.getElementById('closePlaylistBtn');
+
+            const modalOverlay = document.getElementById('modalOverlay');
+            const deleteModal = document.getElementById('deleteModal');
+            const fileInput = document.getElementById('fileInput');
+            const inputTitle = document.getElementById('inputTitle');
+            const inputArtist = document.getElementById('inputArtist');
+            const inputMood = document.getElementById('inputMood');
+            const modalTitle = document.getElementById('modalTitle');
+            const editHint = document.getElementById('editHint');
+            const saveBtn = document.getElementById('saveSongBtn');
+            const closeModal = document.getElementById('closeModal');
+            const openAddBtn = document.getElementById('openAddModal');
+            const cancelDelete = document.getElementById('cancelDelete');
+            const confirmDeleteBtn = document.getElementById('confirmDelete');
+
+            // ----- CANVAS SETUP -----
+            function resizeCanvas() {
+                const rect = appWrapper.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            // ----- MOOD MESSAGES -----
+            const moodMessages = {
+                'Soft': ['gentle soul energy'],
+                'Late Night': ['overthinking anjir'],
+                'Happy': ['nyengir sampe gigi lo kering'],
+                'Hype': ['🔥 LET\'S GOOO'],
+                'Chill': ['net*lix & chill??'],
+                'Sad': ["gaslighting myself that I'm fine"],
+                'Romantic': ['Love is REAL']
+            };
+
+            const defaultMessages = [
+                '✨ selamat mendengarkan',
+                '✨ pilihan bagus.',
+                '✨ yang ini beda.',
+                '✨ oke... era hening.',
+                '✨ kamu suka banget ya?',
+                '✨ sekali lagi? 👀',
+                '✨ vibe check lulus'
+            ];
+
+            // ----- MAP COVER -----
+            const moodCoverMap = {
+                'Soft': { emoji: '🫧', file: 'soft.jpg' },
+                'Late Night': { emoji: '🌙', file: 'latenight.jpg' },
+                'Happy': { emoji: '🌈', file: 'happy.jpg' },
+                'Hype': { emoji: '⚡', file: 'hype.jpg' },
+                'Chill': { emoji: '🌿', file: 'chill.jpg' },
+                'Sad': { emoji: '🌧️', file: 'sad.jpg' },
+                'Romantic': { emoji: '🎀', file: 'romantic.jpg' }
+            };
+
+            function getCoverFile(mood) {
+                return moodCoverMap[mood]?.file || null;
+            }
+
+            function getMoodEmoji(mood) {
+                return moodCoverMap[mood]?.emoji || '🎵';
+            }
+
+            function getMoodMessage(mood) {
+                const messages = moodMessages[mood];
+                if (messages && messages.length > 0) {
+                    return messages[Math.floor(Math.random() * messages.length)];
+                }
+                return defaultMessages[Math.floor(Math.random() * defaultMessages.length)];
+            }
+
+            // ----- AUDIO SETUP -----
+            function setupAudioContext() {
+                if (!audioContext) {
+                    try {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        analyser = audioContext.createAnalyser();
+                        analyser.fftSize = 256;
+                        dataArray = new Uint8Array(analyser.frequencyBinCount);
+                    } catch (e) {
+                        console.warn('Web Audio API not supported');
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            function getAudioData() {
+                if (analyser && dataArray) {
+                    analyser.getByteFrequencyData(dataArray);
+                    return dataArray;
+                }
+                return null;
+            }
+
+            function getAverageVolume(data) {
+                if (!data) return 0;
+                let sum = 0;
+                for (let i = 0; i < data.length; i++) {
+                    sum += data[i];
+                }
+                return sum / data.length / 255;
+            }
+
+            function getBassIntensity(data) {
+                if (!data) return 0;
+                let sum = 0;
+                const bassLen = Math.min(data.length, 20);
+                for (let i = 0; i < bassLen; i++) {
+                    sum += data[i];
+                }
+                return sum / bassLen / 255;
+            }
+
+            // ============================================================
+            // 1. SOFT → 🫧 BUBBLE
+            // ============================================================
+            let softParticles = [];
+
+            function initSoft(count) {
+                softParticles = [];
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = 30 + Math.random() * 120;
+                    softParticles.push({
+                        angle: angle,
+                        radius: radius,
+                        size: 4 + Math.random() * 16,
+                        speed: 0.002 + Math.random() * 0.006,
+                        phase: Math.random() * Math.PI * 2,
+                        hue: 330 + Math.random() * 30
+                    });
+                }
+            }
+
+            function drawSoft() {
+                const data = getAudioData();
+                const vol = getAverageVolume(data);
+                const bass = getBassIntensity(data);
+                const w = canvas.width,
+                    h = canvas.height;
+                const cx = w / 2,
+                    cy = h / 2;
+
+                ctx.clearRect(0, 0, w, h);
+
+                const count = Math.max(10, Math.floor(20 + vol * 35));
+                if (softParticles.length !== count) initSoft(count);
+
+                // Glow
+                const g = ctx.createRadialGradient(cx, cy, 10, cx, cy, 50 + vol * 100);
+                g.addColorStop(0, `rgba(255, 200, 220, ${0.05 + vol * 0.2})`);
+                g.addColorStop(1, 'rgba(255, 200, 220, 0)');
+                ctx.fillStyle = g;
+                ctx.beginPath();
+                ctx.arc(cx, cy, 50 + vol * 100, 0, Math.PI * 2);
+                ctx.fill();
+
+                softParticles.forEach((p, i) => {
+                    p.angle += p.speed * (0.5 + vol * 1.5);
+                    const r = p.radius + Math.sin(p.phase + Date.now() * 0.001) * 10 * (0.5 + vol);
+                    const x = cx + Math.cos(p.angle) * r;
+                    const y = cy + Math.sin(p.angle) * r * 0.8;
+
+                    const size = p.size * (0.6 + vol * 0.8 + bass * 0.3);
+                    const alpha = 0.3 + vol * 0.5;
+
+                    const grad = ctx.createRadialGradient(x - size * 0.3, y - size * 0.3, 0, x, y, size);
+                    grad.addColorStop(0, `rgba(255, 240, 245, ${alpha * 0.9})`);
+                    grad.addColorStop(0.5, `rgba(255, 200, 220, ${alpha * 0.6})`);
+                    grad.addColorStop(1, `rgba(200, 150, 180, ${alpha * 0.1})`);
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = `rgba(255,255,255,${alpha * 0.2})`;
+                    ctx.beginPath();
+                    ctx.arc(x - size * 0.25, y - size * 0.25, size * 0.2, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+
+            // ============================================================
+            // 2. LATE NIGHT → 🌙✨ STARS
+            // ============================================================
+            let starParticles2 = [];
+
+            function initStars2(count) {
+                starParticles2 = [];
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = 30 + Math.random() * 140;
+                    starParticles2.push({
+                        angle: angle,
+                        radius: radius,
+                        size: 1 + Math.random() * 5,
+                        speed: 0.001 + Math.random() * 0.005,
+                        phase: Math.random() * Math.PI * 2,
+                        twinkle: Math.random() * Math.PI * 2
+                    });
+                }
+            }
+
+            function drawLateNight() {
+                const data = getAudioData();
+                const vol = getAverageVolume(data);
+                const bass = getBassIntensity(data);
+                const w = canvas.width,
+                    h = canvas.height;
+                const cx = w / 2,
+                    cy = h / 2;
+
+                ctx.clearRect(0, 0, w, h);
+
+                // Moon glow
+                const moonSize = 25 + vol * 35;
+                const g = ctx.createRadialGradient(cx, cy - 10, 5, cx, cy - 10, moonSize + 50);
+                g.addColorStop(0, `rgba(255, 250, 230, ${0.08 + vol * 0.2})`);
+                g.addColorStop(0.5, `rgba(255, 240, 210, ${0.04 + vol * 0.1})`);
+                g.addColorStop(1, 'rgba(255, 240, 210, 0)');
+                ctx.fillStyle = g;
+                ctx.beginPath();
+                ctx.arc(cx, cy - 10, moonSize + 50, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Moon
+                ctx.fillStyle = `rgba(255, 250, 235, ${0.12 + vol * 0.2})`;
+                ctx.beginPath();
+                ctx.arc(cx, cy - 10, moonSize * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                const count = Math.max(15, Math.floor(25 + vol * 30 + bass * 20));
+                if (starParticles2.length !== count) initStars2(count);
+
+                starParticles2.forEach((p, i) => {
+                    p.angle += p.speed * (0.5 + vol * 1.2);
+                    const r = p.radius + Math.sin(p.phase + Date.now() * 0.0005) * 10;
+                    const x = cx + Math.cos(p.angle) * r;
+                    const y = cy + Math.sin(p.angle) * r * 0.7;
+
+                    const twinkle = Math.sin(p.twinkle + Date.now() * 0.002) * 0.5 + 0.5;
+                    const bright = 0.3 + vol * 0.5 + twinkle * 0.3;
+                    const size = p.size * (0.5 + vol * 0.8 + bass * 0.3);
+
+                    const grad = ctx.createRadialGradient(x, y, 0, x, y, size * 3);
+                    grad.addColorStop(0, `rgba(255, 255, 240, ${bright * 0.8})`);
+                    grad.addColorStop(0.5, `rgba(200, 220, 255, ${bright * 0.3})`);
+                    grad.addColorStop(1, 'rgba(200, 220, 255, 0)');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.arc(x, y, size * 3, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = `rgba(255, 255, 240, ${bright * 0.9})`;
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    if (size > 1.5) {
+                        ctx.strokeStyle = `rgba(255, 255, 240, ${bright * 0.3})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(x - size * 2, y);
+                        ctx.lineTo(x + size * 2, y);
+                        ctx.moveTo(x, y - size * 2);
+                        ctx.lineTo(x, y + size * 2);
+                        ctx.stroke();
+                    }
+                });
+            }
+
+            // ============================================================
+            // 3. HAPPY → 🌈🫧 RAINBOW BUBBLES
+            // ============================================================
+            let happyParticles2 = [];
+
+            function initHappy2(count) {
+                happyParticles2 = [];
+                const colors = ['#FF6B6B', '#FF9F43', '#FECA57', '#48DBFB', '#0ABDE3', '#A29BFE', '#FD79A8', '#00D2D3'];
+                for (let i = 0; i < count; i++) {
+                    happyParticles2.push({
+                        x: (Math.random() - 0.5) * 300,
+                        y: (Math.random() - 0.5) * 300,
+                        vx: (Math.random() - 0.5) * 1.2,
+                        vy: (Math.random() - 0.5) * 1.2,
+                        size: 5 + Math.random() * 18,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        phase: Math.random() * Math.PI * 2
+                    });
+                }
+            }
+
+            function drawHappy() {
+                const data = getAudioData();
+                const vol = getAverageVolume(data);
+                const bass = getBassIntensity(data);
+                const w = canvas.width,
+                    h = canvas.height;
+                const cx = w / 2,
+                    cy = h / 2;
+
+                ctx.clearRect(0, 0, w, h);
+
+                const count = Math.max(8, Math.floor(12 + vol * 30 + bass * 20));
+                if (happyParticles2.length !== count) initHappy2(count);
+
+                // Rainbow glow
+                const g = ctx.createRadialGradient(cx, cy, 10, cx, cy, 60 + vol * 120);
+                g.addColorStop(0, `rgba(255, 220, 150, ${0.05 + vol * 0.15})`);
+                g.addColorStop(1, 'rgba(255, 220, 150, 0)');
+                ctx.fillStyle = g;
+                ctx.beginPath();
+                ctx.arc(cx, cy, 60 + vol * 120, 0, Math.PI * 2);
+                ctx.fill();
+
+                happyParticles2.forEach((p, i) => {
+                    const speed = 0.5 + vol * 2.5 + bass * 1.5;
+                    p.x += p.vx * speed + Math.sin(p.phase + Date.now() * 0.002 + i) * 0.5;
+                    p.y += p.vy * speed + Math.cos(p.phase + Date.now() * 0.002 + i) * 0.5;
+
+                    if (Math.abs(p.x) > 160) p.vx *= -1;
+                    if (Math.abs(p.y) > 160) p.vy *= -1;
+
+                    const size = p.size * (0.5 + vol * 1.2 + bass * 0.8);
+                    const alpha = 0.4 + vol * 0.5 + bass * 0.3;
+                    const x = cx + p.x;
+                    const y = cy + p.y;
+
+                    const grad = ctx.createRadialGradient(x - size * 0.3, y - size * 0.3, 0, x, y, size);
+                    grad.addColorStop(0, p.color + Math.floor(alpha * 100).toString(16).padStart(2, '0'));
+                    grad.addColorStop(0.6, p.color + Math.floor(alpha * 60).toString(16).padStart(2, '0'));
+                    grad.addColorStop(1, p.color + '00');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = `rgba(255,255,255,${alpha * 0.2})`;
+                    ctx.beginPath();
+                    ctx.arc(x - size * 0.2, y - size * 0.3, size * 0.2, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    if (size > 6 && bass > 0.3) {
+                        for (let s = 0; s < 4; s++) {
+                            const a = s * Math.PI / 2 + Date.now() * 0.004;
+                            const d = size * 0.8;
+                            ctx.fillStyle = `rgba(255,255,255,${bass * 0.3})`;
+                            ctx.beginPath();
+                            ctx.arc(x + Math.cos(a) * d, y + Math.sin(a) * d, 1 + bass * 2.5, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
+                });
+            }
+
+            // ============================================================
+            // 4. HYPE → ⚡💥 ENERGY BURST
+            // ============================================================
+            let hypeParticles2 = [];
+
+            function initHype2(count) {
+                hypeParticles2 = [];
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    hypeParticles2.push({
+                        angle: angle,
+                        dist: 5 + Math.random() * 20,
+                        size: 2 + Math.random() * 10,
+                        speed: 0.3 + Math.random() * 1.2,
+                        maxDist: 30 + Math.random() * 150,
+                        hue: 280 + Math.random() * 60
+                    });
+                }
+            }
+
+            function drawHype() {
+                const data = getAudioData();
+                const vol = getAverageVolume(data);
+                const bass = getBassIntensity(data);
+                const w = canvas.width,
+                    h = canvas.height;
+                const cx = w / 2,
+                    cy = h / 2;
+
+                ctx.clearRect(0, 0, w, h);
+
+                const energy = Math.max(0.2, vol * 2.5 + bass * 2);
+
+                // Glow
+                const g = ctx.createRadialGradient(cx, cy, 5, cx, cy, 30 + vol * 180 + bass * 120);
+                g.addColorStop(0, `rgba(255, 80, 150, ${0.05 + vol * 0.25 + bass * 0.2})`);
+                g.addColorStop(0.5, `rgba(200, 60, 200, ${0.03 + vol * 0.15 + bass * 0.1})`);
+                g.addColorStop(1, 'rgba(200, 60, 200, 0)');
+                ctx.fillStyle = g;
+                ctx.beginPath();
+                ctx.arc(cx, cy, 30 + vol * 180 + bass * 120, 0, Math.PI * 2);
+                ctx.fill();
+
+                const count = Math.max(20, Math.floor(30 + vol * 40 + bass * 30));
+                if (hypeParticles2.length !== count) initHype2(count);
+
+                hypeParticles2.forEach((p, i) => {
+                    p.dist += p.speed * energy * 0.6;
+                    p.angle += (0.02 + vol * 0.04 + bass * 0.03) * (i % 2 === 0 ? 1 : -1);
+
+                    if (p.dist > p.maxDist * (0.5 + vol * 0.5 + bass * 0.5)) {
+                        p.dist = 5;
+                        p.angle = Math.random() * Math.PI * 2;
+                        p.maxDist = 30 + Math.random() * 160;
+                        p.size = 2 + Math.random() * 12;
+                    }
+
+                    const x = cx + Math.cos(p.angle) * p.dist;
+                    const y = cy + Math.sin(p.angle) * p.dist * 0.6;
+                    const size = p.size * (0.3 + energy * 1.4);
+                    const alpha = 0.3 + energy * 0.5;
+
+                    for (let t = 0; t < 3; t++) {
+                        const trailAlpha = alpha * (1 - t / 3) * 0.3;
+                        ctx.fillStyle = `hsla(${p.hue + t * 20}, 90%, 60%, ${trailAlpha})`;
+                        ctx.beginPath();
+                        ctx.arc(x - Math.cos(p.angle) * t * size * 0.8, y - Math.sin(p.angle) * t * size * 0.8,
+                            size * (0.6 + t * 0.2), 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+
+                    const grad = ctx.createRadialGradient(x, y, 0, x, y, size);
+                    grad.addColorStop(0, `hsla(${p.hue}, 100%, 90%, ${alpha * 0.9})`);
+                    grad.addColorStop(0.5, `hsla(${p.hue + 20}, 90%, 70%, ${alpha * 0.6})`);
+                    grad.addColorStop(1, `hsla(${p.hue + 40}, 80%, 50%, ${alpha * 0.1})`);
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    if (bass > 0.35 && Math.random() < bass * 0.3) {
+                        for (let s = 0; s < 6; s++) {
+                            const a = s * Math.PI / 3 + Math.random() * 0.5;
+                            const d = size * (1 + bass * 2.5);
+                            ctx.fillStyle = `rgba(255, 255, 255, ${bass * 0.3})`;
+                            ctx.beginPath();
+                            ctx.arc(x + Math.cos(a) * d, y + Math.sin(a) * d, 1 + bass * 4, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
+                });
+            }
+
+            // ============================================================
+            // 5. CHILL → 🌿🌊 LIQUID WAVE
+            // ============================================================
+            function drawChill() {
+                const data = getAudioData();
+                const vol = getAverageVolume(data);
+                const bass = getBassIntensity(data);
+                const w = canvas.width,
+                    h = canvas.height;
+                const cx = w / 2,
+                    cy = h / 2;
+
+                ctx.clearRect(0, 0, w, h);
+
+                const time = Date.now() * 0.001;
+                const waveCount = 3 + Math.floor(vol * 3);
+                const amp = 15 + vol * 50 + bass * 25;
+
+                // Glow
+                const g = ctx.createRadialGradient(cx, cy, 10, cx, cy, 120);
+                g.addColorStop(0, `rgba(100, 200, 180, ${0.03 + vol * 0.08})`);
+                g.addColorStop(1, 'rgba(100, 200, 180, 0)');
+                ctx.fillStyle = g;
+                ctx.beginPath();
+                ctx.arc(cx, cy, 120, 0, Math.PI * 2);
+                ctx.fill();
+
+                for (let wv = 0; wv < waveCount; wv++) {
+                    const offset = wv / waveCount * Math.PI * 2;
+                    const radius = 30 + wv * 25 + vol * 20;
+                    const alpha = 0.15 + vol * 0.25 - wv * 0.02;
+
+                    ctx.beginPath();
+                    for (let i = 0; i <= 80; i++) {
+                        const angle = (i / 80) * Math.PI * 2;
+                        const wave = Math.sin(angle * 3 + time * (0.5 + vol * 0.5) + offset) * amp * 0.5;
+                        const wave2 = Math.sin(angle * 5 + time * 0.7 + offset * 1.5) * amp * 0.25 * bass;
+                        const r = radius + wave + wave2;
+                        const x = cx + Math.cos(angle) * r;
+                        const y = cy + Math.sin(angle) * r * 0.7;
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.closePath();
+                    const hue = 170 + wv * 20 + Math.sin(time + wv) * 10;
+                    ctx.fillStyle = `hsla(${hue}, 60%, 70%, ${alpha * 0.4})`;
+                    ctx.fill();
+                    ctx.strokeStyle = `hsla(${hue + 20}, 70%, 75%, ${alpha * 0.15})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+
+                // Inner blob
+                const blobSize = 25 + vol * 35 + bass * 20;
+                const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, blobSize);
+                bg.addColorStop(0, `rgba(180, 230, 220, ${0.1 + vol * 0.2})`);
+                bg.addColorStop(0.5, `rgba(150, 210, 200, ${0.05 + vol * 0.1})`);
+                bg.addColorStop(1, 'rgba(150, 210, 200, 0)');
+                ctx.fillStyle = bg;
+                ctx.beginPath();
+                for (let i = 0; i <= 40; i++) {
+                    const angle = (i / 40) * Math.PI * 2;
+                    const wobble = Math.sin(angle * 2 + time * 0.5) * 5 * vol;
+                    const r = blobSize + wobble;
+                    const x = cx + Math.cos(angle) * r;
+                    const y = cy + Math.sin(angle) * r * 0.8;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // ============================================================
+            // 6. SAD → 🌧️💧 RAIN + RIPPLE
+            // ============================================================
+            let raindrops2 = [];
+
+            function initRain2(count) {
+                raindrops2 = [];
+                for (let i = 0; i < count; i++) {
+                    raindrops2.push({
+                        x: (Math.random() - 0.5) * 300,
+                        y: (Math.random() - 0.5) * 300,
+                        speed: 0.5 + Math.random() * 2,
+                        size: 1 + Math.random() * 4,
+                        opacity: 0.2 + Math.random() * 0.4
+                    });
+                }
+            }
+
+            let ripples2 = [];
+
+            function addRipple2(x, y, size) {
+                ripples2.push({ x, y, size: size || 5, maxSize: 15 + Math.random() * 25, life: 0, maxLife: 30 + Math.random() *
+                        20 });
+                if (ripples2.length > 20) ripples2.shift();
+            }
+
+            function drawSad() {
+                const data = getAudioData();
+                const vol = getAverageVolume(data);
+                const bass = getBassIntensity(data);
+                const w = canvas.width,
+                    h = canvas.height;
+                const cx = w / 2,
+                    cy = h / 2;
+
+                ctx.clearRect(0, 0, w, h);
+
+                const count = Math.max(10, Math.floor(15 + vol * 25 + bass * 15));
+                if (raindrops2.length !== count) initRain2(count);
+
+                raindrops2.forEach((drop, i) => {
+                    drop.y += drop.speed * (0.5 + vol * 2);
+                    drop.x += Math.sin(i + Date.now() * 0.001) * 0.15;
+
+                    if (drop.y > 160) {
+                        drop.y = -160;
+                        drop.x = (Math.random() - 0.5) * 300;
+                        if (vol > 0.1) {
+                            addRipple2(cx + drop.x * 0.7, cy + 150, 5 + vol * 20);
+                        }
+                    }
+
+                    const x = cx + drop.x * 0.7;
+                    const y = cy + drop.y * 0.7;
+
+                    ctx.strokeStyle = `rgba(180, 200, 220, ${drop.opacity * (0.3 + vol * 0.3)})`;
+                    ctx.lineWidth = drop.size * 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(x - drop.size * 0.5, y + drop.size * 5);
+                    ctx.stroke();
+
+                    const tipGrad = ctx.createRadialGradient(x, y, 0, x, y, drop.size * 2.5);
+                    tipGrad.addColorStop(0, `rgba(180, 200, 230, ${drop.opacity * (0.2 + vol * 0.2)})`);
+                    tipGrad.addColorStop(1, 'rgba(180, 200, 230, 0)');
+                    ctx.fillStyle = tipGrad;
+                    ctx.beginPath();
+                    ctx.arc(x, y, drop.size * 2.5, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                ripples2.forEach((r, idx) => {
+                    r.life++;
+                    r.size += 0.4;
+                    const progress = r.life / r.maxLife;
+                    const alpha = (1 - progress) * (0.3 + vol * 0.3);
+
+                    ctx.strokeStyle = `rgba(180, 200, 230, ${alpha * 0.5})`;
+                    ctx.lineWidth = 1 - progress;
+                    ctx.beginPath();
+                    ctx.arc(r.x, r.y, r.size, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    const grad = ctx.createRadialGradient(r.x, r.y, 0, r.x, r.y, r.size);
+                    grad.addColorStop(0, `rgba(180, 200, 230, ${alpha * 0.05})`);
+                    grad.addColorStop(1, 'rgba(180, 200, 230, 0)');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.arc(r.x, r.y, r.size, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    if (r.life >= r.maxLife) {
+                        ripples2.splice(idx, 1);
+                    }
+                });
+
+                if (bass > 0.3 && Math.random() < bass * 0.1) {
+                    addRipple2(cx + (Math.random() - 0.5) * 100, cy + (Math.random() - 0.5) * 100, 5 + bass * 15);
+                }
+            }
+
+            // ============================================================
+            // 7. ROMANTIC → 🎀💗 HEARTS
+            // ============================================================
+            let heartParticles2 = [];
+
+            function initHearts2(count) {
+                heartParticles2 = [];
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = 20 + Math.random() * 130;
+                    heartParticles2.push({
+                        angle: angle,
+                        radius: radius,
+                        size: 6 + Math.random() * 18,
+                        speed: 0.002 + Math.random() * 0.008,
+                        phase: Math.random() * Math.PI * 2,
+                        hue: 330 + Math.random() * 30,
+                        floatOffset: Math.random() * 100
+                    });
+                }
+            }
+
+            function drawHeart2(x, y, size, hue, alpha, pulse) {
+                const s = size * (0.8 + pulse * 0.5);
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.scale(s / 20, s / 20);
+
+                const grad = ctx.createRadialGradient(-5, -5, 0, 0, 0, 20);
+                grad.addColorStop(0, `hsla(${hue}, 100%, 85%, ${alpha * 0.9})`);
+                grad.addColorStop(0.5, `hsla(${hue + 10}, 90%, 70%, ${alpha * 0.7})`);
+                grad.addColorStop(1, `hsla(${hue + 20}, 80%, 60%, ${alpha * 0.2})`);
+
+                ctx.fillStyle = grad;
+                ctx.shadowColor = `hsla(${hue}, 100%, 70%, ${alpha * 0.3})`;
+                ctx.shadowBlur = 20;
+
+                ctx.beginPath();
+                ctx.moveTo(0, 5);
+                ctx.bezierCurveTo(-15, -10, -25, 5, 0, 18);
+                ctx.bezierCurveTo(25, 5, 15, -10, 0, 5);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.shadowBlur = 0;
+
+                const auraGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, 25);
+                auraGrad.addColorStop(0, `hsla(${hue}, 100%, 80%, ${alpha * 0.1})`);
+                auraGrad.addColorStop(1, 'rgba(255, 200, 200, 0)');
+                ctx.fillStyle = auraGrad;
+                ctx.beginPath();
+                ctx.arc(0, 0, 25, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            }
+
+            function drawRomantic() {
+                const data = getAudioData();
+                const vol = getAverageVolume(data);
+                const bass = getBassIntensity(data);
+                const w = canvas.width,
+                    h = canvas.height;
+                const cx = w / 2,
+                    cy = h / 2;
+
+                ctx.clearRect(0, 0, w, h);
+
+                const g = ctx.createRadialGradient(cx, cy, 10, cx, cy, 50 + vol * 130);
+                g.addColorStop(0, `rgba(255, 180, 200, ${0.05 + vol * 0.2})`);
+                g.addColorStop(0.5, `rgba(255, 150, 180, ${0.03 + vol * 0.1})`);
+                g.addColorStop(1, 'rgba(255, 150, 180, 0)');
+                ctx.fillStyle = g;
+                ctx.beginPath();
+                ctx.arc(cx, cy, 50 + vol * 130, 0, Math.PI * 2);
+                ctx.fill();
+
+                const count = Math.max(8, Math.floor(12 + vol * 30 + bass * 20));
+                if (heartParticles2.length !== count) initHearts2(count);
+
+                heartParticles2.forEach((p, i) => {
+                    p.angle += p.speed * (0.5 + vol * 2);
+                    const r = p.radius + Math.sin(p.phase + Date.now() * 0.0008) * 15 * (0.5 + vol);
+                    const x = cx + Math.cos(p.angle) * r;
+                    const y = cy + Math.sin(p.angle) * r * 0.7 + Math.sin(p.floatOffset + Date.now() * 0.001) * 5;
+
+                    const pulse = 0.7 + vol * 0.6 + bass * 0.5;
+                    const alpha = 0.4 + vol * 0.5 + bass * 0.2;
+                    const size = p.size * (0.6 + vol * 0.6 + bass * 0.4);
+
+                    drawHeart2(x, y, size, p.hue, alpha, pulse);
+
+                    if (bass > 0.2 && Math.random() < bass * 0.15) {
+                        const sx = x + (Math.random() - 0.5) * 30;
+                        const sy = y + (Math.random() - 0.5) * 30;
+                        drawHeart2(sx, sy, size * 0.3, p.hue + 20, alpha * 0.5, 1);
+                    }
+                });
+            }
+
+            // ============================================================
+            // VISUALIZER CONTROLLER
+            // ============================================================
+            function getVisualizerFunction(mood) {
+                switch (mood) {
+                    case 'Soft':
+                        return drawSoft;
+                    case 'Late Night':
+                        return drawLateNight;
+                    case 'Happy':
+                        return drawHappy;
+                    case 'Hype':
+                        return drawHype;
+                    case 'Chill':
+                        return drawChill;
+                    case 'Sad':
+                        return drawSad;
+                    case 'Romantic':
+                        return drawRomantic;
+                    default:
+                        return drawSoft;
+                }
+            }
+
+            function initVisualizerForMood(mood) {
+                currentMood = mood;
+                switch (mood) {
+                    case 'Soft':
+                        initSoft(30);
+                        break;
+                    case 'Late Night':
+                        initStars2(40);
+                        break;
+                    case 'Happy':
+                        initHappy2(20);
+                        break;
+                    case 'Hype':
+                        initHype2(30);
+                        break;
+                    case 'Chill':
+                        break;
+                    case 'Sad':
+                        initRain2(25);
+                        ripples2 = [];
+                        break;
+                    case 'Romantic':
+                        initHearts2(15);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            let isVisualizerPaused = true;
+            let visualizerActive = false;
+
+            function startVisualizer() {
+                if (visualizerActive) return;
+                if (!analyser && !setupAudioContext()) return;
+
+                visualizerActive = true;
+                isVisualizerPaused = false;
+                const drawFn = getVisualizerFunction(currentMood);
+                initVisualizerForMood(currentMood);
+
+                function animate() {
+                    if (!visualizerActive) return;
+                    if (!isVisualizerPaused && isPlaying) {
+                        drawFn();
+                    } else if (!isVisualizerPaused && !isPlaying) {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    }
+                    visualizerFrameId = requestAnimationFrame(animate);
+                }
+                animate();
+            }
+
+            function stopVisualizer() {
+                visualizerActive = false;
+                isVisualizerPaused = true;
+                if (visualizerFrameId) {
+                    cancelAnimationFrame(visualizerFrameId);
+                    visualizerFrameId = null;
+                }
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+
+            function pauseVisualizer() {
+                isVisualizerPaused = true;
+            }
+
+            function resumeVisualizer() {
+                isVisualizerPaused = false;
+            }
+
+            // ============================================================
+            // INTEGRATION WITH EXISTING CODE
+            // ============================================================
+            function updateCuteMessage(mood) {
+                if (mood) {
+                    const msg = getMoodMessage(mood);
+                    cuteMsg.textContent = '✨ ' + msg;
+                } else {
+                    cuteMsg.textContent = '✨ pilih lagu dulu ya';
+                }
+            }
+
+            function getCurrentSong() {
+                if (currentIndex >= 0 && currentIndex < songs.length) return songs[currentIndex];
+                return null;
+            }
+
+            function updateDisplay() {
+                const song = getCurrentSong();
+                if (song) {
+                    songTitle.textContent = song.title;
+                    songArtist.textContent = song.artist;
+                    songMoodLabel.textContent = song.mood + ' ' + getMoodEmoji(song.mood);
+
+                    const coverFile = getCoverFile(song.mood);
+                    if (coverFile) {
+                        coverImage.src = coverFile;
+                        coverImage.style.display = 'block';
+                        fallbackEmoji.style.display = 'none';
+                    } else {
+                        coverImage.style.display = 'none';
+                        fallbackEmoji.style.display = 'flex';
+                        fallbackEmoji.textContent = getMoodEmoji(song.mood);
+                    }
+
+                    if (isPlaying) {
+                        cdContainer.classList.add('spinning');
+                    } else {
+                        cdContainer.classList.remove('spinning');
+                    }
+
+                    if (song.mood !== currentMood) {
+                        initVisualizerForMood(song.mood);
+                    }
+
+                    applyMoodTheme(song.mood);
+                    updateCuteMessage(song.mood);
+                } else {
+                    songTitle.textContent = 'Belum ada lagu';
+                    songArtist.textContent = '—';
+                    songMoodLabel.textContent = '🎵';
+                    coverImage.style.display = 'none';
+                    fallbackEmoji.style.display = 'flex';
+                    fallbackEmoji.textContent = '🎧';
+                    cdContainer.classList.remove('spinning');
+                    appWrapper.style.cssText = 'background: rgba(255, 248, 245, 0.92); backdrop-filter: blur(4px);';
+                    updateCuteMessage(null);
+                    stopVisualizer();
+                }
+                updatePlayButton();
+                renderPlaylistItems();
+            }
+
+            function applyMoodTheme(mood) {
+                const themes = {
+                    'Soft': 'background: #faf0ed;',
+                    'Late Night': 'background: #1e293b;',
+                    'Happy': 'background: #fdf5d6;',
+                    'Hype': 'background: #fae6d8;',
+                    'Chill': 'background: #e5efdf;',
+                    'Sad': 'background: #d6c5c5;',
+                    'Romantic': 'background: #fae7ed;'
+                };
+                appWrapper.style.cssText = (themes[mood] || themes['Soft']) + ' transition: background 0.4s;';
+
+                const titleEl = document.getElementById('songTitle');
+                const artistEl = document.getElementById('songArtist');
+                const moodLabel = document.getElementById('songMoodLabel');
+                const currentTimeEl = document.getElementById('currentTime');
+                const durationTimeEl = document.getElementById('durationTime');
+                const prevBtnEl = document.getElementById('prevBtn');
+                const nextBtnEl = document.getElementById('nextBtn');
+
+                if (mood === 'Late Night') {
+                    titleEl.style.color = '#e2e8f0';
+                    artistEl.style.color = '#cbd5e1';
+                    moodLabel.style.color = '#1e293b';
+                    moodLabel.style.backgroundColor = '#e2e8f0';
+                    currentTimeEl.style.color = '#cbd5e1';
+                    durationTimeEl.style.color = '#cbd5e1';
+                    cuteMsg.style.color = '#cbd5e1';
+                    prevBtnEl.style.color = '#cbd5e1';
+                    nextBtnEl.style.color = '#cbd5e1';
+                } else {
+                    titleEl.style.color = '';
+                    artistEl.style.color = '';
+                    moodLabel.style.color = '';
+                    moodLabel.style.backgroundColor = '';
+                    currentTimeEl.style.color = '';
+                    durationTimeEl.style.color = '';
+                    cuteMsg.style.color = '';
+                    prevBtnEl.style.color = '';
+                    nextBtnEl.style.color = '';
+                }
+            }
+
+            function updatePlayButton() {
+                playBtn.textContent = isPlaying ? '⏸' : '▶';
+                if (isPlaying) {
+                    cdContainer.classList.add('spinning');
+                    resumeVisualizer();
+                } else {
+                    cdContainer.classList.remove('spinning');
+                    pauseVisualizer();
+                }
+            }
+
+            function playSong(index) {
+                if (index < 0 || index >= songs.length) return;
+                currentIndex = index;
+                const song = songs[index];
+                if (!song.url) {
+                    if (song.blob) {
+                        song.url = URL.createObjectURL(song.blob);
+                    } else return;
+                }
+
+                if (!audioContext) {
+                    setupAudioContext();
+                }
+
+                if (audioContext && analyser) {
+                    try {
+                        const source = audioContext.createMediaElementSource(audio);
+                        source.connect(analyser);
+                        analyser.connect(audioContext.destination);
+                    } catch (e) {}
+                }
+
+                audio.src = song.url;
+                audio.load();
+                audio.play().then(() => {
+                    isPlaying = true;
+                    if (audioContext && audioContext.state === 'suspended') {
+                        audioContext.resume();
+                    }
+                    updateDisplay();
+                    renderPlaylistItems();
+                    if (!visualizerActive) {
+                        startVisualizer();
+                    } else {
+                        resumeVisualizer();
+                    }
+                }).catch(() => {});
+            }
+
+            function togglePlay() {
+                if (songs.length === 0) return;
+                if (!audio.src || currentIndex === -1) {
+                    playSong(0);
+                    return;
+                }
+                if (isPlaying) {
+                    audio.pause();
+                    isPlaying = false;
+                    updatePlayButton();
+                    cdContainer.classList.remove('spinning');
+                    pauseVisualizer();
+                } else {
+                    audio.play().then(() => {
+                        isPlaying = true;
+                        updatePlayButton();
+                        cdContainer.classList.add('spinning');
+                        if (audioContext && audioContext.state === 'suspended') {
+                            audioContext.resume();
+                        }
+                        updateCuteMessage(getCurrentSong()?.mood);
+                        resumeVisualizer();
+                    }).catch(() => {});
+                }
+            }
+
+            function nextSong() {
+                if (songs.length === 0) return;
+                const filtered = getFilteredSongs();
+                const idx = filtered.findIndex(s => s.id === getCurrentSong()?.id);
+                let nextIdx = idx + 1;
+                if (nextIdx >= filtered.length) nextIdx = 0;
+                const targetId = filtered[nextIdx]?.id;
+                if (targetId) {
+                    const realIdx = songs.findIndex(s => s.id === targetId);
+                    playSong(realIdx);
+                }
+            }
+
+            function prevSong() {
+                if (songs.length === 0) return;
+                const filtered = getFilteredSongs();
+                const idx = filtered.findIndex(s => s.id === getCurrentSong()?.id);
+                let prevIdx = idx - 1;
+                if (prevIdx < 0) prevIdx = filtered.length - 1;
+                const targetId = filtered[prevIdx]?.id;
+                if (targetId) {
+                    const realIdx = songs.findIndex(s => s.id === targetId);
+                    playSong(realIdx);
+                }
+            }
+
+            function getFilteredSongs() {
+                if (currentFilter === 'all') return songs;
+                return songs.filter(s => s.mood === currentFilter);
+            }
+
+            // ----- RENDER PLAYLIST -----
+            function renderPlaylistItems() {
+                const filtered = getFilteredSongs();
+                if (filtered.length === 0) {
+                    playlistItems.innerHTML = `
+                        <div class="empty-state">
+                            <div class="big">🎧</div>
+                            <p>Playlist kosong 🥺</p>
+                            <p style="font-size:0.6rem;">Tambahkan lagu dengan klik ＋</p>
+                            <p style="font-size:0.5rem; margin-top:0.15rem;">🌸 ✦ ⭐ ✦ 🎀</p>
+                        </div>
+                    `;
+                    return;
+                }
+                let html = '';
+                filtered.forEach((song) => {
+                    const isCurrent = getCurrentSong()?.id === song.id;
+                    const coverFile = getCoverFile(song.mood);
+                    const emoji = getMoodEmoji(song.mood);
+                    html += `
+                        <div class="playlist-item ${isCurrent ? 'current' : ''}" data-id="${song.id}">
+                            <div class="mini-cover">
+                                ${coverFile ? `<img src="${coverFile}" alt="cover" />` : emoji}
+                            </div>
+                            <div class="item-info">
+                                <div class="item-title">${song.title}</div>
+                                <div class="item-artist">${song.artist}</div>
+                                <span class="item-mood">${song.mood}</span>
+                            </div>
+                            <div class="item-actions">
+                                ${isCurrent ? '<span style="font-size:0.55rem; color:#c49a8a;">▶</span>' : ''}
+                                <button data-action="edit" data-id="${song.id}" title="Edit">✎</button>
+                                <button data-action="delete" data-id="${song.id}" title="Hapus">✕</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                playlistItems.innerHTML = html;
+
+                playlistItems.querySelectorAll('.playlist-item').forEach(el => {
+                    el.addEventListener('click', (e) => {
+                        const actionBtn = e.target.closest('[data-action]');
+                        if (actionBtn) {
+                            const action = actionBtn.dataset.action;
+                            const id = actionBtn.dataset.id;
+                            if (action === 'edit') {
+                                openEditModal(id);
+                                closePlaylist();
+                            } else if (action === 'delete') {
+                                openDeleteModal(id);
+                            }
+                            return;
+                        }
+                        const id = el.dataset.id;
+                        const idx = songs.findIndex(s => s.id === id);
+                        if (idx !== -1) {
+                            playSong(idx);
+                            closePlaylist();
+                        }
+                    });
+                });
+            }
+
+            // ----- PLAYLIST SHEET -----
+            function openPlaylist() {
+                renderPlaylistItems();
+                playlistOverlay.classList.add('show');
+            }
+
+            function closePlaylist() {
+                playlistOverlay.classList.remove('show');
+            }
+
+            openPlaylistBtn.addEventListener('click', openPlaylist);
+            closePlaylistBtn.addEventListener('click', closePlaylist);
+            playlistOverlay.addEventListener('click', (e) => {
+                if (e.target === playlistOverlay) closePlaylist();
+            });
+
+            // ----- MODAL -----
+            function openAddModalFn() {
+                editingId = null;
+                modalTitle.textContent = '✨ Tambah Lagu';
+                fileInput.value = '';
+                inputTitle.value = '';
+                inputArtist.value = '';
+                inputMood.value = 'Soft';
+                editHint.textContent = '';
+                modalOverlay.classList.add('show');
+            }
+
+            function openEditModal(id) {
+                const song = songs.find(s => s.id === id);
+                if (!song) return;
+                editingId = id;
+                modalTitle.textContent = '✎ Edit Lagu';
+                fileInput.value = '';
+                inputTitle.value = song.title;
+                inputArtist.value = song.artist;
+                inputMood.value = song.mood;
+                editHint.textContent = 'sedang edit: ' + song.title;
+                modalOverlay.classList.add('show');
+            }
+
+            function closeModalFn() {
+                modalOverlay.classList.remove('show');
+                editingId = null;
+            }
+
+            openAddBtn.addEventListener('click', openAddModalFn);
+            closeModal.addEventListener('click', closeModalFn);
+
+            saveBtn.addEventListener('click', () => {
+                const file = fileInput.files[0];
+                const title = inputTitle.value.trim() || 'tanpa judul';
+                const artist = inputArtist.value.trim() || 'unknown';
+                const mood = inputMood.value;
+
+                if (editingId) {
+                    const idx = songs.findIndex(s => s.id === editingId);
+                    if (idx === -1) return;
+                    songs[idx].title = title;
+                    songs[idx].artist = artist;
+                    songs[idx].mood = mood;
+                    if (file) {
+                        songs[idx].blob = file;
+                        if (songs[idx].url) URL.revokeObjectURL(songs[idx].url);
+                        songs[idx].url = null;
+                    }
+                    saveToDB();
+                    if (currentIndex === idx) updateDisplay();
+                    else renderPlaylistItems();
+                    closeModalFn();
+                    return;
+                }
+
+                if (!file) { alert('Pilih file audio dulu ya!'); return; }
+                const newSong = {
+                    id: Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+                    title,
+                    artist,
+                    mood,
+                    blob: file,
+                    url: null
+                };
+                songs.push(newSong);
+                saveToDB();
+                if (songs.length === 1) playSong(0);
+                else {
+                    renderPlaylistItems();
+                    updateDisplay();
+                }
+                closeModalFn();
+            });
+
+            // ----- DELETE -----
+            function openDeleteModal(id) {
+                deleteTargetId = id;
+                deleteModal.classList.add('show');
+            }
+
+            cancelDelete.addEventListener('click', () => deleteModal.classList.remove('show'));
+            confirmDeleteBtn.addEventListener('click', () => {
+                if (deleteTargetId === null) return;
+                const idx = songs.findIndex(s => s.id === deleteTargetId);
+                if (idx !== -1) {
+                    if (songs[idx].url) URL.revokeObjectURL(songs[idx].url);
+                    const wasCurrent = currentIndex === idx;
+                    songs.splice(idx, 1);
+                    if (wasCurrent) {
+                        audio.pause();
+                        isPlaying = false;
+                        currentIndex = songs.length > 0 ? 0 : -1;
+                        if (currentIndex >= 0) playSong(currentIndex);
+                        else updateDisplay();
+                    } else {
+                        if (currentIndex > idx) currentIndex--;
+                        renderPlaylistItems();
+                        updateDisplay();
+                    }
+                    saveToDB();
+                }
+                deleteTargetId = null;
+                deleteModal.classList.remove('show');
+            });
+
+            // ----- FILTER -----
+            document.querySelectorAll('.mood-dot').forEach(dot => {
+                dot.addEventListener('click', () => {
+                    document.querySelectorAll('.mood-dot').forEach(d => d.classList.remove('active'));
+                    dot.classList.add('active');
+                    currentFilter = dot.dataset.mood;
+                    renderPlaylistItems();
+                });
+            });
+
+            // ----- PLAYER EVENTS -----
+            playBtn.addEventListener('click', togglePlay);
+            prevBtn.addEventListener('click', prevSong);
+            nextBtn.addEventListener('click', nextSong);
+
+            audio.addEventListener('timeupdate', () => {
+                if (audio.duration) {
+                    const pct = (audio.currentTime / audio.duration) * 100;
+                    progressFill.style.width = pct + '%';
+                    currentTime.textContent = formatTime(audio.currentTime);
+                    durationTime.textContent = formatTime(audio.duration);
+                }
+            });
+
+            audio.addEventListener('ended', () => {
+                isPlaying = false;
+                updatePlayButton();
+                cdContainer.classList.remove('spinning');
+                pauseVisualizer();
+                nextSong();
+            });
+
+            progressBar.addEventListener('click', (e) => {
+                if (!audio.duration) return;
+                const rect = progressBar.getBoundingClientRect();
+                audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+            });
+
+            volumeSlider.addEventListener('input', () => {
+                audio.volume = parseFloat(volumeSlider.value);
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    togglePlay();
+                }
+            });
+
+            function formatTime(sec) {
+                if (!sec || isNaN(sec)) return '0:00';
+                const m = Math.floor(sec / 60);
+                const s = Math.floor(sec % 60);
+                return m + ':' + (s < 10 ? '0' : '') + s;
+            }
+
+            // ----- INDEXED DB -----
+            function openDB() {
+                return new Promise((resolve, reject) => {
+                    const req = indexedDB.open('JillyMusicDB', 1);
+                    req.onupgradeneeded = (e) => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains('songs')) {
+                            db.createObjectStore('songs', { keyPath: 'id' });
+                        }
+                    };
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => reject(req.error);
+                });
+            }
+
+            async function saveToDB() {
+                try {
+                    const db = await openDB();
+                    const tx = db.transaction('songs', 'readwrite');
+                    const store = tx.objectStore('songs');
+                    store.clear();
+                    for (let s of songs) {
+                        const { id, title, artist, mood, blob } = s;
+                        store.add({ id, title, artist, mood, blob });
+                    }
+                    await new Promise((resolve, reject) => { tx.oncomplete = resolve;
+                        tx.onerror = reject; });
+                } catch (e) { console.warn('db save error', e); }
+            }
+
+            async function loadFromDB() {
+                try {
+                    const db = await openDB();
+                    const tx = db.transaction('songs', 'readonly');
+                    const store = tx.objectStore('songs');
+                    const all = await new Promise((resolve) => {
+                        const req = store.getAll();
+                        req.onsuccess = () => resolve(req.result);
+                        req.onerror = () => resolve([]);
+                    });
+                    songs = all.map(item => ({
+                        id: item.id,
+                        title: item.title,
+                        artist: item.artist,
+                        mood: item.mood,
+                        blob: item.blob,
+                        url: null
+                    }));
+                    if (songs.length > 0) {
+                        currentIndex = 0;
+                        setupAudioContext();
+                        initVisualizerForMood(songs[0].mood);
+                        playSong(0);
+                    } else {
+                        updateDisplay();
+                        initVisualizerForMood('Soft');
+                    }
+                    renderPlaylistItems();
+                } catch (e) { console.warn('db load error', e); }
+            }
+
+            loadFromDB();
+
+            cdContainer.addEventListener('click', togglePlay);
+        })();
+    </script>
+</body>
+</html>
